@@ -12,10 +12,10 @@ AI Agent 项目脚手架 — 快速生成基于异步任务队列（Redis + Mong
 
 ```bash
 # 从 GitHub 直接安装（推荐）
-uv tool install git+https://github.com/<your-org>/talos.git
+uv tool install git+https://github.com/ZyqAlwaysCool/talos.git
 
 # 或克隆后本地安装
-git clone https://github.com/<your-org>/talos.git
+git clone https://github.com/ZyqAlwaysCool/talos.git
 cd talos
 uv tool install .
 ```
@@ -142,14 +142,14 @@ docker compose up -d
 启动后日志写入 `logs/` 目录：
 
 ```bash
-tail -f logs/server.log    # API 日志
-tail -f logs/worker.log    # Worker 日志
+tail -f logs/$(date +%Y-%m-%d).log              # API 日志（按日轮转）
+tail -f logs/$(date +%Y-%m-%d)-worker.log       # Worker 日志（按日轮转）
 ```
 
 ## 开发
 
 ```bash
-git clone https://github.com/<your-org>/talos.git
+git clone https://github.com/ZyqAlwaysCool/talos.git
 cd talos
 uv sync
 uv run pytest tests/ -v

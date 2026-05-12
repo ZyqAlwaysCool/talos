@@ -14,22 +14,21 @@ if [ -f "$PROJECT_DIR/.env.local" ]; then
 fi
 
 PORT="${TALOS_SVR_PORT:-19999}"
-LOGS_DIR="$PROJECT_DIR/logs"
 PID_DIR="$PROJECT_DIR/.pids"
-mkdir -p "$LOGS_DIR" "$PID_DIR"
+mkdir -p "$PID_DIR"
 
 start_server() {
     echo "[server] 启动 API 服务 (port: $PORT)..."
-    nohup uv run python main.py > "$LOGS_DIR/server.log" 2>&1 &
+    nohup uv run python main.py > /dev/null 2>&1 &
     echo $! > "$PID_DIR/server.pid"
-    echo "[server] PID: $(cat $PID_DIR/server.pid)  日志: $LOGS_DIR/server.log"
+    echo "[server] PID: $(cat $PID_DIR/server.pid)  日志: logs/$(date +%Y-%m-%d).log"
 }
 
 start_worker() {
     echo "[worker] 启动 Worker..."
-    nohup uv run python worker_main.py > "$LOGS_DIR/worker.log" 2>&1 &
+    nohup uv run python worker_main.py > /dev/null 2>&1 &
     echo $! > "$PID_DIR/worker.pid"
-    echo "[worker] PID: $(cat $PID_DIR/worker.pid)  日志: $LOGS_DIR/worker.log"
+    echo "[worker] PID: $(cat $PID_DIR/worker.pid)  日志: logs/$(date +%Y-%m-%d)-worker.log"
 }
 
 start_all() {
@@ -40,8 +39,9 @@ start_all() {
     echo ""
     echo "API:   http://0.0.0.0:$PORT"
     echo "Docs:  http://0.0.0.0:$PORT/docs"
-    echo "日志:  tail -f $LOGS_DIR/server.log"
-    echo "       tail -f $LOGS_DIR/worker.log"
+    echo ""
+    echo "日志:  tail -f logs/\$(date +%Y-%m-%d).log"
+    echo "       tail -f logs/\$(date +%Y-%m-%d)-worker.log"
     echo "停止:  bash scripts/stop.sh"
 }
 
