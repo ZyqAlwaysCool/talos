@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any
 
 from bson import ObjectId
 from loguru import logger
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
-from pymongo import ASCENDING, DESCENDING
 
 
 class MongoStorage:
@@ -20,19 +19,30 @@ class MongoStorage:
         *,
         host: str = "127.0.0.1",
         port: int = 27017,
+        username: str | None = None,
+        password: str | None = None,
     ):
         self.db_name = db_name
         self.host = host
         self.port = port
+        self.username = username
+        self._password = password
+        self.collection_name = collection_name
         self.client: AsyncIOMotorClient | None = None
         self.db: Any = None
         self.col: Any = None
-        self.collection_name = collection_name
         self._fs: AsyncIOMotorGridFSBucket | None = None
+
+    def _build_uri(self) -> str:
+        if self.username and self._password:
+            return f"mongodb://{self.username}:{self._password}@{self.host}:{self.port}"
+        return f"mongodb://{self.host}:{self.port}"
 
     def _get_client(self) -> AsyncIOMotorClient:
         if self.client is None:
-            self.client = AsyncIOMotorClient(self.host, self.port)
+            self.client = AsyncIOMotorClient(
+                self._build_uri(), serverSelectionTimeoutMS=5000
+            )
             self.db = self.client[self.db_name]
             self.col = self.db[self.collection_name]
             self._fs = AsyncIOMotorGridFSBucket(self.db)
@@ -74,15 +84,10 @@ class MongoStorage:
         return result.deleted_count > 0
 
     async def upload_file(
-        self,
-        filename: str,
-        data: bytes,
-        metadata: dict[str, Any] | None = None,
+        self, filename: str, data: bytes, metadata: dict[str, Any] | None = None
     ) -> str:
         client = self._get_client()
-        file_id = await self._fs.upload_from_stream(
-            filename, data, metadata=metadata
-        )
+        file_id = await self._fs.upload_from_stream(filename, data, metadata=metadata)
         return str(file_id)
 
     async def download_file(self, file_id: str) -> bytes:

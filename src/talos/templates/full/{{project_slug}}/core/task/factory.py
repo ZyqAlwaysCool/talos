@@ -57,6 +57,8 @@ class TaskManagerFactory:
         app_config = get_app_config()
         final_config: dict[str, Any] = {
             "db_name": app_config.mongo_db_name,
+            "mongo_host": app_config.mongo_host,
+            "mongo_port": app_config.mongo_port,
         }
         if config:
             final_config.update(config)

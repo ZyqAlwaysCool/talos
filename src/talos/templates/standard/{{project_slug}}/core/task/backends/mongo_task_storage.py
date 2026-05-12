@@ -29,7 +29,16 @@ class MongoTaskStorage(StorageBackend):
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.db_name = str(self.config.get("db_name", "talos_agents"))
-        logger.info(f"MongoDB task storage initialized for database: {self.db_name}")
+        self.mongo_host = str(self.config.get("mongo_host", "127.0.0.1"))
+        self.mongo_port = int(self.config.get("mongo_port", 27017))
+        self.mongo_user = self.config.get("mongo_user")
+        self.mongo_password = self.config.get("mongo_password")
+        logger.info(
+            "MongoDB task storage initialized. db={} host={}:{}",
+            self.db_name,
+            self.mongo_host,
+            self.mongo_port,
+        )
 
     def _get_current_collection_mapping(self) -> dict[str, str]:
         return collection_registry.get_mappings()
@@ -41,7 +50,14 @@ class MongoTaskStorage(StorageBackend):
         )
         _cache = type(self)._storage_instances
         if collection_name not in _cache:
-            _cache[collection_name] = MongoStorage(self.db_name, collection_name)
+            _cache[collection_name] = MongoStorage(
+                self.db_name,
+                collection_name,
+                host=self.mongo_host,
+                port=self.mongo_port,
+                username=self.mongo_user,
+                password=self.mongo_password,
+            )
         return _cache[collection_name]
 
     def _extract_task_type_key(self, task: BaseTask) -> str:
