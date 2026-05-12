@@ -1,0 +1,75 @@
+"""
+Description: 系统级错误码定义
+Author: talos
+Date: 2026-05-12
+"""
+
+
+# 通用错误码
+COMMON_ERROR_START = -10000
+COMMON_ERROR_REQUEST_PARSE_ERROR = -10001  # 请求解析错误
+COMMON_ERROR_INVALID_REQUEST_PARAM_ERROR = -10002  # 无效的请求参数
+COMMON_ERROR_JSON_PARSE_ERROR = -10003  # 请求体 JSON 解析错误
+COMMON_ERROR_SERVICE_INIT_FAILED = -10004  # 服务初始化失败
+COMMON_ERROR_INTERNAL_ERROR = -50000  # 系统内部错误
+COMMON_ERROR_END = -10199
+
+# 文件处理错误码
+FILE_ERROR_START = -10200
+FILE_EEROR_TOO_LARGE = -10201  # 文件过大
+FILE_ERROR_PREPROCESS_FAILED = -10202  # 文件预处理错误
+FILE_ERROR_UPLOAD_TO_DIFY_FAILED = -10203  # 文件上传Dify错误
+FILE_ERROR_SAVE_TO_MARKDOWN_FAILED = -10204  # 文件保存为markdown失败
+FILE_ERROR_NOT_EXIST = -10205  # 文件不存在
+FILE_ERROR_END = -10299
+
+# 数据库错误码
+DB_ERROR_START = -10300
+DB_ERROR_QUERY_FAILED = -10301  # 数据库查询失败
+DB_ERROR_INSERT_FAILED = -10302  # 数据库插入失败
+DB_ERROR_UPDATE_FAILED = -10303  # 数据库更新失败
+DB_ERROR_DELETE_FAILED = -10304  # 数据库删除失败
+DB_ERROR_SYSTEM_ERROR = -10305  # 数据库系统错误
+DB_ERROR_END = -10399
+
+# 鉴权错误码
+AUTH_ERROR_START = -10400
+AUTH_ERROR_AUTH_FAILED = -10401  # 鉴权失败
+AUTH_ERROR_LOGIN_FAILED = -10402  # 登录失败
+AUTH_ERROR_INVALID_TOKEN = -10403  # 无效的token
+AUTH_ERROR_VERIFY_TOKEN_FAILED = -10404  # 令牌验证失败
+AUTH_ERROR_USER_ALREADY_EXISTS = -10405  # 用户已存在
+AUTH_ERROR_REGISTER_FAILED = -10406  # 注册失败
+AUTH_ERROR_END = -10499
+
+# 工作流错误码
+WORKFLOW_ERROR_EXECUTION_FAILED = -11000  # 工作流执行失败
+
+
+def get_error_message(code: int) -> str:
+    """根据错误码获取描述信息"""
+    error_messages = {
+        COMMON_ERROR_REQUEST_PARSE_ERROR: "请求解析错误",
+        COMMON_ERROR_INVALID_REQUEST_PARAM_ERROR: "无效的请求参数",
+        COMMON_ERROR_JSON_PARSE_ERROR: "JSON解析错误",
+        FILE_EEROR_TOO_LARGE: "文件过大",
+        FILE_ERROR_PREPROCESS_FAILED: "文件预处理错误",
+        FILE_ERROR_UPLOAD_TO_DIFY_FAILED: "文件上传Dify错误",
+        FILE_ERROR_SAVE_TO_MARKDOWN_FAILED: "文件保存为markdown失败",
+        FILE_ERROR_NOT_EXIST: "文件不存在/已过期/已删除",
+        DB_ERROR_QUERY_FAILED: "数据库查询失败",
+        DB_ERROR_INSERT_FAILED: "数据库插入失败",
+        DB_ERROR_UPDATE_FAILED: "数据库更新失败",
+        DB_ERROR_DELETE_FAILED: "数据库删除失败",
+        DB_ERROR_SYSTEM_ERROR: "数据库系统错误",
+        AUTH_ERROR_AUTH_FAILED: "鉴权失败",
+        AUTH_ERROR_LOGIN_FAILED: "登录失败",
+        AUTH_ERROR_INVALID_TOKEN: "无效的token或已过期",
+        AUTH_ERROR_VERIFY_TOKEN_FAILED: "token验证失败",
+        AUTH_ERROR_USER_ALREADY_EXISTS: "用户已存在",
+        AUTH_ERROR_REGISTER_FAILED: "注册失败",
+        COMMON_ERROR_SERVICE_INIT_FAILED: "服务初始化失败",
+        COMMON_ERROR_INTERNAL_ERROR: "系统内部错误，请稍后重试",
+        WORKFLOW_ERROR_EXECUTION_FAILED: "工作流执行失败",
+    }
+    return error_messages.get(code, "未知错误")

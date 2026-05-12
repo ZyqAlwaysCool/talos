@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+# 创建虚拟环境
+RUN uv venv /opt/venv --python=python3.11
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# 安装依赖
+COPY pyproject.toml uv.lock* ./
+RUN if [ -f uv.lock ]; then uv sync --frozen --no-dev; else uv sync --no-dev; fi
+
+# 复制源码
+COPY . /app/
+
+ENV PYTHONPATH=/app
+
+ARG SVR_PORT={{ server_port }}
+ENV SVR_PORT=${SVR_PORT}
+EXPOSE ${SVR_PORT}
+
+# 默认启动 API
+CMD ["uv", "run", "main.py"]

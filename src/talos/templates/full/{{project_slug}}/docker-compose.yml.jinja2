@@ -1,0 +1,79 @@
+services:
+  api:
+    build: .
+    image: {{ project_slug }}:latest
+    container_name: {{ project_slug }}-api
+    restart: unless-stopped
+    ports:
+      - "{{ server_port }}:{{ server_port }}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env.docker
+    networks:
+      - {{ project_slug }}_network
+
+  worker:
+    build: .
+    image: {{ project_slug }}:latest
+    container_name: {{ project_slug }}-worker
+    restart: unless-stopped
+    command: ["uv", "run", "worker_main.py"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env.docker
+    environment:
+      TALOS_WORKER_QUEUE_NAME: ${TALOS_WORKER_QUEUE_NAME:-{{ redis_queue_prefix }}:queue}
+      WORKER_LOG_SUFFIX: worker
+    networks:
+      - {{ project_slug }}_network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: {{ project_slug }}-mongodb
+    restart: unless-stopped
+    volumes:
+      - ./mongodb_data:/data/db
+    networks:
+      - {{ project_slug }}_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: {{ project_slug }}-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - {{ project_slug }}_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+networks:
+  {{ project_slug }}_network:
+    driver: bridge
