@@ -13,52 +13,66 @@ if [ -f "$PROJECT_DIR/.env.local" ]; then
 fi
 
 PORT="${TALOS_SVR_PORT:-19999}"
+LOGS_DIR="$PROJECT_DIR/logs"
 PID_DIR="$PROJECT_DIR/.pids"
-mkdir -p "$PID_DIR"
+mkdir -p "$LOGS_DIR" "$PID_DIR"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+SERVER_LOG="$LOGS_DIR/$(date +%Y-%m-%d).log"
+WORKER_LOG="$LOGS_DIR/$(date +%Y-%m-%d)-${WORKER_LOG_SUFFIX:-worker}.log"
+
+_show_error() {
+    local name="$1" err_file="$2" log_file="$3"
+    echo -e "${RED}[$name] 启动失败，进程已退出${NC}"
+    if [ -s "$err_file" ]; then
+        echo "── 启动错误输出 ──"
+        cat "$err_file" | tail -10
+    fi
+    if [ -f "$log_file" ]; then
+        echo "── 最后日志 ($(basename "$log_file")) ──"
+        tail -5 "$log_file"
+    fi
+    rm -f "$err_file"
+}
+
 _check_alive() {
-    local pid="$1" name="$2" log_name="$3"
+    local pid="$1" name="$2" err_file="$3" log_file="$4"
     local max_wait=5 elapsed=0
     while [ $elapsed -lt $max_wait ]; do
         if ! kill -0 "$pid" 2>/dev/null; then
-            echo -e "${RED}[$name] 启动失败，进程已退出${NC}"
-            echo "── 最后 5 行日志 ($log_name) ──"
-            local log_file=$(find "$PROJECT_DIR/logs" -name "$log_name" -type f 2>/dev/null | sort | tail -1)
-            if [ -n "${log_file:-}" ]; then
-                tail -5 "$log_file"
-            else
-                echo "  (日志文件未生成)"
-            fi
+            _show_error "$name" "$err_file" "$log_file"
             return 1
         fi
         sleep 1
         elapsed=$((elapsed + 1))
     done
+    rm -f "$err_file"
     return 0
 }
 
 start_server() {
     echo -n "[server] 启动 API 服务 (port: $PORT)... "
-    nohup uv run python main.py > /dev/null 2>&1 &
+    local err_file=$(mktemp)
+    nohup uv run python main.py > /dev/null 2> "$err_file" &
     local pid=$!
     echo $pid > "$PID_DIR/server.pid"
 
-    if _check_alive "$pid" "server" "$(date +%Y-%m-%d)*.log"; then
+    if _check_alive "$pid" "server" "$err_file" "$SERVER_LOG"; then
         echo -e "${GREEN}OK${NC}  PID: $pid"
     fi
 }
 
 start_worker() {
     echo -n "[worker] 启动 Worker... "
-    nohup uv run python worker_main.py > /dev/null 2>&1 &
+    local err_file=$(mktemp)
+    nohup uv run python worker_main.py > /dev/null 2> "$err_file" &
     local pid=$!
     echo $pid > "$PID_DIR/worker.pid"
 
-    if _check_alive "$pid" "worker" "$(date +%Y-%m-%d)-worker*.log"; then
+    if _check_alive "$pid" "worker" "$err_file" "$WORKER_LOG"; then
         echo -e "${GREEN}OK${NC}  PID: $pid"
     fi
 }
@@ -72,8 +86,8 @@ start_all() {
     echo "API:   http://0.0.0.0:$PORT"
     echo "Docs:  http://0.0.0.0:$PORT/docs"
     echo ""
-    echo "日志:  tail -f logs/\$(date +%Y-%m-%d).log"
-    echo "       tail -f logs/\$(date +%Y-%m-%d)-worker.log"
+    echo "日志:  tail -f $SERVER_LOG"
+    echo "       tail -f $WORKER_LOG"
     echo "停止:  bash scripts/stop.sh"
 }
 
