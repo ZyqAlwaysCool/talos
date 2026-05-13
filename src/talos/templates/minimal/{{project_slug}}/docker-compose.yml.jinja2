@@ -44,7 +44,7 @@ services:
       - {{ project_slug }}_network
 
   mongodb:
-    image: mongo:7.0
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mongo:latest
     container_name: {{ project_slug }}-mongodb
     restart: unless-stopped
     volumes:
@@ -59,7 +59,7 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:7.0-alpine
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/redis:7.0.14
     container_name: {{ project_slug }}-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
