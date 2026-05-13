@@ -1,152 +1,162 @@
 # Talos
 
-AI Agent 项目脚手架 — 快速生成基于异步任务队列（Redis + MongoDB）的 AI Agent 后端服务。
+[中文 / Chinese](README_zh.md)
 
-## 前置要求
+> **Talos** was the bronze giant of Greek mythology, forged by Hephaestus the divine craftsman — tirelessly patrolling the shores of Crete, faithfully carrying out his guardianship. He is the earliest "automaton" in myth: a sleepless, indefatigable executor.
+>
+> This project borrows that image: **forge your AI Agent backend as Hephaestus forged Talos — generate a complete, production-ready service in seconds.** You define the Agent's behavioral boundaries; Talos scaffolds the infrastructure — task queues, storage, logging, and workflow orchestration.
+
+An AI Agent project scaffolding tool — rapidly generate AI Agent backend services powered by async task queues (Redis + MongoDB).
+
+## Prerequisites
 
 - Python 3.10+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/)（Python 包管理器）
-- MongoDB 和 Redis（开发环境可用 Docker 快速启动）
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) — Python package manager
+- MongoDB & Redis (Docker available for local development)
 
-## 安装
+## Installation
 
 ```bash
-# 从 GitHub 直接安装（推荐）
+# Install directly from GitHub (recommended)
 uv tool install git+https://github.com/ZyqAlwaysCool/talos.git
 
-# 或克隆后本地安装
+# Or clone and install locally
 git clone https://github.com/ZyqAlwaysCool/talos.git
 cd talos
 uv tool install .
 ```
 
-安装后 `talos` 命令全局可用：
+The `talos` command is globally available after installation:
 
 ```bash
 talos --help
 ```
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 1. 交互式创建新项目
+# 0. Upgrade the tool (if installed via uv tool)
+uv tool upgrade talos
+
+# 1. Create a new project interactively
 talos new my-first-agent
 
-# 2. 进入项目
+# 2. Enter the project directory
 cd my-first-agent
 
-# 3. 安装依赖
+# 3. Install dependencies
 uv sync
 
-# 4. 修改 .env.local 中的 MongoDB / Redis 连接信息（如已通过 CLI 配置 LLM 则可跳过）
+# 4. Edit MongoDB/Redis connection info in .env.local
+#    (skip if LLM was already configured via CLI)
 
-# 5. 启动服务
+# 5. Start services
 bash scripts/start.sh all
 
-# 6. 测试
+# 6. Test
 curl -X POST http://127.0.0.1:19999/text_processor/create \
   -H "Content-Type: application/json" \
-  -d '{"text": "人工智能正在改变我们的生活方式..."}'
+  -d '{"text": "Artificial intelligence is transforming how we live..."}'
 
-curl "http://127.0.0.1:19999/text_processor/query?task_id=<返回的 task_id>"
+curl "http://127.0.0.1:19999/text_processor/query?task_id=<returned task_id>"
 
-# 7. 停止
+# 7. Stop
 bash scripts/stop.sh
 ```
 
-## 交互式 CLI
+## Interactive CLI
 
 ```
 $ talos new my-agent
 
-  选择项目模板:
-    Minimal  — 仅 core 基础库 + 最简 Agent 示例
-  ❯ Standard — + LLM 执行器 + Thinking Stream + pocketflow 工作流
-    Full     — + SSE 推送 + 工作流归档 + 认证 + Coze/Dify 客户端
+  Select project template:
+    Minimal  — core lib + minimal Agent example
+  ❯ Standard — + LLM executor + Thinking Stream + pocketflow workflow
+    Full     — + SSE push + workflow archiving + auth + Coze/Dify clients
 
-  选择 LLM Provider:
-    OpenAI 兼容 (Qwen / DeepSeek / etc.)
-  ❯ 跳过，稍后手动配置
+  Select LLM Provider:
+    OpenAI-compatible (Qwen / DeepSeek / etc.)
+  ❯ Skip, configure manually later
 
-  是否启用认证模块? (y/N)
+  Enable authentication? (y/N)
 
-  MongoDB 数据库名: (my_agent)
-  API 服务端口: (19999)
-  Redis 队列前缀: (my_agent)
+  MongoDB database name: (my_agent)
+  API service port: (19999)
+  Redis queue prefix: (my_agent)
 ```
 
-如果选择 LLM Provider 并填写 API Key，`.env.local` 会自动生成，开箱即用。
+If you select an LLM Provider and enter the API Key, `.env.local` is auto-generated — ready to use out of the box.
 
-## 模板说明
+## Templates
 
-| 模板 | 包含内容 | 适用 |
+| Template | Includes | Best for |
 |------|---------|------|
-| **Minimal** | `core/`（任务队列、MongoDB、Redis）+ 示例 Agent | 快速原型、学习 |
-| **Standard** | Minimal + LLM 执行器 + Thinking Stream + 工作流归档 | 标准 AI Agent 服务 |
-| **Full** | Standard + SSE 推送 + 认证 + Coze/Dify 客户端 | 生产级服务 |
+| **Minimal** | `core/` (task queue, MongoDB, Redis) + example Agent | Prototyping & learning |
+| **Standard** | Minimal + LLM executor + Thinking Stream + workflow archiving | Standard AI Agent services |
+| **Full** | Standard + SSE push + auth + Coze/Dify clients | Production |
 
-## 项目结构
+## Project Structure
 
 ```
 my-agent/
-├── main.py                  # FastAPI 入口
-├── worker_main.py           # Worker 入口
+├── main.py                  # FastAPI entry point
+├── worker_main.py           # Worker entry point
 ├── scripts/
-│   ├── start.sh             # 启动脚本
-│   └── stop.sh              # 停止脚本
-├── core/                    # 基础设施
-│   ├── config/              # 配置中心
-│   ├── task/                # 异步任务队列（Redis 后端 + MongoDB 存储）
-│   ├── storage/             # MongoDB 抽象层
-│   ├── logging/             # 日志系统
-│   ├── middleware/           # HTTP 中间件
-│   ├── exceptions/          # 异常体系
-│   └── schemas/             # 统一响应模型
+│   ├── start.sh             # Start script
+│   └── stop.sh              # Stop script
+├── core/                    # Infrastructure
+│   ├── config/              # Configuration center
+│   ├── task/                # Async task queue (Redis backend + MongoDB storage)
+│   ├── storage/             # MongoDB abstraction layer
+│   ├── logging/             # Logging system
+│   ├── middleware/           # HTTP middleware
+│   ├── exceptions/          # Exception hierarchy
+│   └── schemas/             # Unified response schemas
 ├── agents/
-│   └── text_processor/      # 示例 Agent
-│       ├── router.py        # FastAPI 路由
-│       ├── service.py       # 业务编排
-│       ├── schemas.py       # 数据模型
-│       ├── repository/      # 持久化
-│       └── workflow/        # DAG 工作流
+│   └── text_processor/      # Example Agent
+│       ├── router.py        # FastAPI router
+│       ├── service.py       # Business orchestration
+│       ├── schemas.py       # Data models
+│       ├── repository/      # Persistence
+│       └── workflow/        # DAG workflow
 ├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
 └── pyproject.toml
 ```
 
-## 添加新 Agent
+## Add a New Agent
 
-在已有项目中快速生成 Agent 骨架：
+Quickly generate an Agent scaffold within an existing project:
 
 ```bash
 talos create agent invoice-review
 
-# 选择:
-#   Simple   — router + service + 单 LLM 调用
-#   Workflow — router + service + DAG 工作流 + 多节点
+# Options:
+#   Simple   — router + service + single LLM call
+#   Workflow — router + service + DAG workflow + multi-node
 ```
 
-`main.py` 会自动发现 `agents/*/router.py`，无需手动注册路由。
+`main.py` auto-discovers `agents/*/router.py` — no manual route registration needed.
 
-## Docker 部署
+## Docker Deployment
 
 ```bash
 cp .env.docker.example .env.docker
-# 编辑 .env.docker 中的 MongoDB/Redis 地址
+# Edit MongoDB/Redis addresses in .env.docker
 docker compose up -d
 ```
 
-## 日志
+## Logs
 
-启动后日志写入 `logs/` 目录：
+Logs are written to the `logs/` directory after startup:
 
 ```bash
-tail -f logs/$(date +%Y-%m-%d).log              # API 日志（按日轮转）
-tail -f logs/$(date +%Y-%m-%d)-worker.log       # Worker 日志（按日轮转）
+tail -f logs/$(date +%Y-%m-%d).log              # API logs (daily rotation)
+tail -f logs/$(date +%Y-%m-%d)-worker.log       # Worker logs (daily rotation)
 ```
 
-## 开发
+## Development
 
 ```bash
 git clone https://github.com/ZyqAlwaysCool/talos.git
