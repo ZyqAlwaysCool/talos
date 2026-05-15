@@ -86,9 +86,6 @@ class AppConfig(BaseModel):
         default_factory=list,
         description="Task registration module paths; auto-discovered from agents.biz if empty",
     )
-        default_factory=list,
-        description="Task registration modules (auto-discovered)",
-    )
 
     enalbe_file_write: bool = Field(False, description="Enable file write API")
 
