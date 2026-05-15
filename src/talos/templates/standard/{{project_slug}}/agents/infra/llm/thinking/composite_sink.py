@@ -4,9 +4,8 @@ import asyncio
 from collections.abc import Iterable
 from typing import Any
 
-from loguru import logger
-
 from agents.infra.llm.context import ThinkingContext
+from loguru import logger
 
 
 class CompositeThinkingSink:

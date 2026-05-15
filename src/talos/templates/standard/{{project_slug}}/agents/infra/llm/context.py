@@ -19,7 +19,7 @@ class ThinkingContext:
     node_seq: int = 0
     node_type: str = ""
 
-    def with_prompt(self, prompt_name: str) -> "ThinkingContext":
+    def with_prompt(self, prompt_name: str) -> ThinkingContext:
         node_name = self.node_name or prompt_name
         node_display_name = self.node_display_name or prompt_name
         return ThinkingContext(
@@ -46,7 +46,7 @@ class ThinkingContext:
         node_seq: int,
         node_type: str | None = None,
         node_display_name: str | None = None,
-    ) -> "ThinkingContext":
+    ) -> ThinkingContext:
         return ThinkingContext(
             task_id=self.task_id,
             agent_name=self.agent_name,

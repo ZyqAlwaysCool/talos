@@ -7,6 +7,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.storage.mongo_storage import MongoStorage
 from core.task.base.storage_backend import StorageBackend
 from core.task.models.task_models import (
     BaseTask,
@@ -17,7 +18,6 @@ from core.task.models.task_models import (
     TaskStatus,
     TaskType,
 )
-from core.storage.mongo_storage import MongoStorage
 from core.task.registry import collection_registry
 
 

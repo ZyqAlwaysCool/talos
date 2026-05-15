@@ -3,8 +3,6 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from loguru import logger
-
 from agents.infra.workflow_archive.schemas import (
     WorkflowArchive,
     WorkflowArchiveNode,
@@ -14,6 +12,7 @@ from agents.infra.workflow_archive.view_schemas import (
     WorkflowNodeInfo,
     WorkflowTreeNodeInfo,
 )
+from loguru import logger
 
 
 def load_workflow_archive(

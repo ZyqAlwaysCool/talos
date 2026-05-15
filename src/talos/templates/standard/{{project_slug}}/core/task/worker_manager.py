@@ -12,6 +12,7 @@ from loguru import logger
 from core.task.factory import TaskManagerFactory
 from core.task.models.task_models import TaskStatus
 from core.task.redis_queue import (
+    RedisClient,
     build_queue_keys,
     create_redis_client,
     dump_queue_payload,
@@ -19,7 +20,6 @@ from core.task.redis_queue import (
     utc_timestamp,
     utc_timestamp_score,
 )
-from core.task.redis_queue import RedisClient
 from core.task.worker import TaskRetryRequested, process_task
 
 

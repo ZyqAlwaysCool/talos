@@ -7,13 +7,11 @@ LastEditTime: 2026-02-28 09:32:21
 '''
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from loguru import logger
 
-from core.schemas.base_resp_model_define import BaseResponse
-from .models import LoginRequest, RegisterRequest, RegisterResponse
-from .auth_service import AuthService
 from core.config.error_codes import (
     AUTH_ERROR_AUTH_FAILED,
     AUTH_ERROR_INVALID_TOKEN,
@@ -22,6 +20,10 @@ from core.config.error_codes import (
     AUTH_ERROR_VERIFY_TOKEN_FAILED,
     get_error_message,
 )
+from core.schemas.base_resp_model_define import BaseResponse
+
+from .auth_service import AuthService
+from .models import LoginRequest, RegisterRequest, RegisterResponse
 
 auth_router = APIRouter(prefix="/auth", tags=["认证"])
 _bearer_scheme = HTTPBearer(auto_error=False)

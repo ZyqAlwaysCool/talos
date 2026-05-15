@@ -84,6 +84,9 @@ class AppConfig(BaseModel):
     # Task modules — 由各 Agent 注册，此处仅做配置根
     task_modules: list[str] = Field(
         default_factory=list,
+        description="Task registration module paths; auto-discovered from agents.biz if empty",
+    )
+        default_factory=list,
         description="Task registration modules (auto-discovered)",
     )
 

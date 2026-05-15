@@ -117,8 +117,8 @@ TALOS_LLM_TEMPERATURE=0.2
 TALOS_LLM_MAX_TOKENS=1024
 TALOS_LLM_TIMEOUT=60
 
-# Task modules
-TALOS_TASK_MODULES=agents.text_processor.workflow.task_entry
+# Task modules — 留空启用自动发现（扫描 agents/biz/*/workflow/task_entry）
+# TALOS_TASK_MODULES=agents.biz.text_processor.workflow.task_entry
 
 # Auth
 TALOS_AUTH_ENABLED={'true' if auth_enabled else 'false'}

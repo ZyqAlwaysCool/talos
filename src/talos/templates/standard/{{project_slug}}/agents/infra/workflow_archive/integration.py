@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import inspect
-from typing import Any, Awaitable, cast
+from collections.abc import Awaitable
+from dataclasses import dataclass
+from typing import Any, cast
 from uuid import uuid4
-
-from loguru import logger
 
 from agents.infra.llm.context import ThinkingContext
 from agents.infra.llm.thinking.composite_sink import CompositeThinkingSink
 from agents.infra.llm.thinking.redis_stream_sink import RedisStreamThinkingSink
 from agents.infra.workflow_archive.collector import WorkflowArchiveCollector
-from agents.infra.workflow_archive.mapper import build_workflow_nodes_view, load_workflow_archive
+from agents.infra.workflow_archive.mapper import (
+    build_workflow_nodes_view,
+    load_workflow_archive,
+)
 from core.config.config_center import AppConfig
 from core.task.base.repository import BaseTaskRepository
 from core.task.redis_queue import RedisClient, create_redis_client
+from loguru import logger
 
 
 @dataclass(slots=True)
@@ -47,7 +50,7 @@ class ThinkingArchiveRuntime:
         task_retry_context: dict[str, Any] | None,
         agent_name: str,
         workflow_name: str,
-    ) -> "ThinkingArchiveRuntime":
+    ) -> ThinkingArchiveRuntime:
         """构建运行时依赖，并返回可直接注入 workflow 的 runtime。
 
         开关策略：仅当「请求开启」且「全局开启」同时满足时才启用。

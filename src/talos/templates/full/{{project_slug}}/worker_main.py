@@ -8,16 +8,13 @@ from __future__ import annotations
 import asyncio
 import os
 
-from loguru import logger
-
 from core.config.config_center import get_app_config, get_worker_config
 from core.logging import setup_logger
-from core.task.worker import load_task_modules
 from core.task.worker_manager import WorkerManager, setup_signal_handlers
+from loguru import logger
 
 
 def create_worker_manager() -> WorkerManager:
-    """从配置创建 WorkerManager 实例."""
     app_config = get_app_config()
     worker_config = get_worker_config()
     return WorkerManager(
@@ -43,10 +40,8 @@ async def main() -> None:
     worker_log_suffix = os.getenv("WORKER_LOG_SUFFIX", "worker").strip() or "worker"
     setup_logger(file_suffix=worker_log_suffix)
 
-    # 惰性加载 task 注册模块
-    config = get_app_config()
-    if config.task_modules:
-        load_task_modules(config.task_modules)
+    from core.task.worker import load_task_modules
+    load_task_modules()
 
     worker_manager = create_worker_manager()
     setup_signal_handlers(worker_manager)

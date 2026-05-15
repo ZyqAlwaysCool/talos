@@ -7,8 +7,8 @@ LastEditTime: 2026-02-28 09:34:32
 '''
 
 from fastapi import HTTPException, Request
-from starlette.middleware.base import BaseHTTPMiddleware
 from loguru import logger
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.config.error_codes import (
     AUTH_ERROR_AUTH_FAILED,

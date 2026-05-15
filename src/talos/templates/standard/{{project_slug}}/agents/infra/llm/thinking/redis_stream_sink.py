@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import json
 import inspect
+import json
+from collections.abc import Awaitable
 from time import time
-from typing import Any, Awaitable, cast
+from typing import Any, cast
 
 from agents.infra.llm.context import ThinkingContext
 from core.task.redis_queue import RedisClient

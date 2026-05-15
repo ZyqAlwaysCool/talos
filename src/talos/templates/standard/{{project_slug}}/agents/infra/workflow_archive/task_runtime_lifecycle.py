@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from loguru import logger
-
 from agents.infra.workflow_archive.integration import ThinkingArchiveRuntime
 from core.task.base.repository import BaseTaskRepository
 from core.task.models.task_models import TaskStatus
+from loguru import logger
 
 
 async def emit_done_and_persist_archive(

@@ -6,15 +6,17 @@ LastEditors: zyq
 LastEditTime: 2026-02-28 09:40:42
 '''
 
-from loguru import logger
-from typing import Dict, List, Any, Optional, AsyncGenerator
-import httpx
-import json
-import os
 import asyncio
+import json
 import mimetypes
+import os
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from .base_workflow import BaseWorkflowClient, WorkflowType, WorkflowResponse
+import httpx
+from loguru import logger
+
+from .base_workflow import BaseWorkflowClient, WorkflowResponse, WorkflowType
 
 
 # 保持向后兼容的响应模型
@@ -60,9 +62,9 @@ class DifyClient(BaseWorkflowClient):
     async def execute_chatflow_block(
         self,
         query: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        files: Optional[List[Any]] = None,
-        user_id: Optional[str] = None,
+        inputs: dict[str, Any] | None = None,
+        files: list[Any] | None = None,
+        user_id: str | None = None,
     ) -> DifyClientResp:
         """阻塞模式执行对话流, 提取执行结果"""
         inputs = inputs or {}
@@ -115,7 +117,7 @@ class DifyClient(BaseWorkflowClient):
         return DifyClientResp.success(data=body)
 
     async def get_chatflow_conversation_history(
-        self, conversation_id: str, user: Optional[str] = None
+        self, conversation_id: str, user: str | None = None
     ) -> DifyClientResp:
         """获取会话历史记录
 
@@ -171,7 +173,7 @@ class DifyClient(BaseWorkflowClient):
         return DifyClientResp.success(data=body, conv_id=conversation_id)
 
     async def get_chatflow_conversation_list(
-        self, user: Optional[str] = None, last_id: Optional[str] = None, limit: int = 20
+        self, user: str | None = None, last_id: str | None = None, limit: int = 20
     ) -> DifyClientResp:
         """
         获取会话列表
@@ -266,7 +268,7 @@ class DifyClient(BaseWorkflowClient):
         return DifyClientResp.success(data="")
 
     async def delete_chatflow_conversation(
-        self, conversation_id: str, user: Optional[str] = None
+        self, conversation_id: str, user: str | None = None
     ) -> DifyClientResp:
         """
         删除会话
@@ -319,9 +321,9 @@ class DifyClient(BaseWorkflowClient):
     async def rename_chatflow_conversation(
         self,
         conversation_id: str,
-        name: Optional[str] = None,
+        name: str | None = None,
         auto_generate: bool = False,
-        user: Optional[str] = None,
+        user: str | None = None,
     ) -> DifyClientResp:
         """
         会话重命名
@@ -369,7 +371,7 @@ class DifyClient(BaseWorkflowClient):
         return DifyClientResp.success(data=body)
 
     async def _upload_dify_file(
-        self, file_path: str, user: Optional[str] = None
+        self, file_path: str, user: str | None = None
     ) -> DifyClientResp:
         """
         上传文件到Dify平台（通用接口，支持chatflow和workflow）
@@ -494,13 +496,13 @@ class DifyClient(BaseWorkflowClient):
 
     # 为了保持向后兼容性，提供便捷的wrapper方法
     async def upload_chatflow_file(
-        self, file_path: str, user: Optional[str] = None
+        self, file_path: str, user: str | None = None
     ) -> DifyClientResp:
         """上传chatflow文件 - 调用通用上传接口"""
         return await self._upload_dify_file(file_path=file_path, user=user)
 
     async def upload_workflow_file(
-        self, file_path: str, user: Optional[str] = None
+        self, file_path: str, user: str | None = None
     ) -> DifyClientResp:
         """上传workflow文件 - 调用通用上传接口"""
         return await self._upload_dify_file(file_path=file_path, user=user)
@@ -509,8 +511,8 @@ class DifyClient(BaseWorkflowClient):
         self,
         stop_flag: asyncio.Event,
         url: str,
-        headers: Optional[Dict[str, Any]] = None,
-        payload: Optional[Dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         logger.info(
             f"start sse. workflow_name=({self.workflow_name}) url=({url}) payload=({payload})"
@@ -554,8 +556,8 @@ class DifyClient(BaseWorkflowClient):
         self,
         stop_flag: asyncio.Event,
         query: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        files: Optional[List[Any]] = None,
+        inputs: dict[str, Any] | None = None,
+        files: list[Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         """chatflow流式透传数据块, 不做任何额外处理"""
         inputs = inputs or {}
@@ -587,8 +589,8 @@ class DifyClient(BaseWorkflowClient):
     async def workflow_sse_raw(
         self,
         stop_flag: asyncio.Event,
-        inputs: Optional[Dict[str, Any]] = None,
-        files: Optional[List[Any]] = None,
+        inputs: dict[str, Any] | None = None,
+        files: list[Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         """workflow流式透传数据块, 不做任何额外处理"""
         inputs = inputs or {}
@@ -688,7 +690,7 @@ class DifyClient(BaseWorkflowClient):
             "Authorization": f"Bearer {self._dify_api_key}",
             "Content-Type": "application/json",
         }
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "page": page,
             "limit": limit,
         }
@@ -777,7 +779,7 @@ class DifyClient(BaseWorkflowClient):
 
     # ====================workflow相关接口能力====================
     async def execute_workflow_block(
-        self, inputs: Optional[Dict[str, Any]] = None, files: Optional[List[Any]] = None
+        self, inputs: dict[str, Any] | None = None, files: list[Any] | None = None
     ) -> DifyClientResp:
         """
         阻塞模式执行工作流, 提取执行结果.
@@ -928,12 +930,12 @@ class DifyClient(BaseWorkflowClient):
 
     async def get_workflow_logs(
         self,
-        keyword: Optional[str] = None,
-        status: Optional[str] = None,
+        keyword: str | None = None,
+        status: str | None = None,
         page: int = 1,
         limit: int = 20,
-        created_by_end_user_session_id: Optional[str] = None,
-        created_by_account: Optional[str] = None,
+        created_by_end_user_session_id: str | None = None,
+        created_by_account: str | None = None,
     ) -> DifyClientResp:
         """
         获取workflow日志
@@ -958,7 +960,7 @@ class DifyClient(BaseWorkflowClient):
             "Content-Type": "application/json",
         }
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "page": page,
             "limit": limit,
         }

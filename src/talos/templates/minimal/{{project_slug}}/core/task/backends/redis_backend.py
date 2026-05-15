@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from loguru import logger
 
+from core.task.base.queue_backend import QueueBackend
+from core.task.models.task_models import BaseTask, TaskResult, TaskStatus
 from core.task.redis_queue import (
+    RedisClient,
     build_queue_keys,
     create_redis_client,
     dump_queue_payload,
     load_queue_payload,
     utc_timestamp,
 )
-from core.task.redis_queue import RedisClient
-from core.task.base.queue_backend import QueueBackend
-from core.task.models.task_models import BaseTask, TaskResult, TaskStatus
 
 
 class RedisTaskBackend(QueueBackend):

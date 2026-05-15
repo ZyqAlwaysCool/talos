@@ -8,10 +8,12 @@ LastEditTime: 2026-02-28 09:33:17
 
 import hashlib
 import secrets
-from typing import Optional, List, Tuple
 from datetime import datetime
+
 from loguru import logger
+
 from core.storage.mongo_storage import MongoStorage
+
 from .models import AuthUser, UserStatus
 
 
@@ -47,8 +49,8 @@ class AuthUserStorage:
             return False
 
     async def create_user(
-        self, business_name: str, permissions: List[str]
-    ) -> Tuple[AuthUser, str]:
+        self, business_name: str, permissions: list[str]
+    ) -> tuple[AuthUser, str]:
         """Create user."""
         await self._ensure_indexes()
         username = f"{business_name}_auth_user"
@@ -76,7 +78,7 @@ class AuthUserStorage:
 
     async def authenticate_user(
         self, username: str, password: str
-    ) -> Optional[AuthUser]:
+    ) -> AuthUser | None:
         """Authenticate user."""
         await self._ensure_indexes()
         collection = self.mongo.db[self.collection_name]
@@ -100,7 +102,7 @@ class AuthUserStorage:
         logger.info(f"User authenticated: {username}")
         return AuthUser(**user_data)
 
-    async def get_user_by_username(self, username: str) -> Optional[AuthUser]:
+    async def get_user_by_username(self, username: str) -> AuthUser | None:
         """Get user by username."""
         await self._ensure_indexes()
         collection = self.mongo.db[self.collection_name]
@@ -116,7 +118,7 @@ class AuthUserStorage:
         )
         return result.modified_count > 0
 
-    async def update_permissions(self, username: str, permissions: List[str]) -> bool:
+    async def update_permissions(self, username: str, permissions: list[str]) -> bool:
         """Update user permissions."""
         await self._ensure_indexes()
         collection = self.mongo.db[self.collection_name]

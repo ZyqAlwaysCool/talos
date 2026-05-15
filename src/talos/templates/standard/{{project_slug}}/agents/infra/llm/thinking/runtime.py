@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import inspect
 import itertools
+from collections.abc import Awaitable
 from contextvars import ContextVar, Token
-from typing import Any, Awaitable, cast
-
-from loguru import logger
+from typing import Any, cast
 
 from agents.infra.llm.context import ThinkingContext
 from agents.infra.llm.thinking.base import ThinkingSink
+from loguru import logger
 
 THINKING_TRACE_RUNTIME_SHARED_KEY = "__thinking_trace_runtime"
 

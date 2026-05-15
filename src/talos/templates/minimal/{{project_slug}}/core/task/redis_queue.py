@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Mapping, Protocol, cast
+from typing import Any, Protocol, cast
 
 from redis.asyncio import Redis
 from redis.asyncio.cluster import ClusterNode, RedisCluster

@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from agents.text_processor.schemas import TextProcessorCreateRequest
 from agents.text_processor.service import TextProcessorService
 from core.task.models.task_models import BaseTask, TaskStatus
@@ -110,6 +109,7 @@ async def test_summarize_node_no_llm(monkeypatch):
 def test_llm_detection():
     """有 API Key 时 _llm_available 应返回 True."""
     import os
+
     from agents.text_processor.workflow.nodes.summarize import _llm_available
 
     os.environ["TALOS_LLM_API_KEY"] = "sk-test"

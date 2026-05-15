@@ -6,10 +6,10 @@ LastEditors: zyq
 LastEditTime: 2026-02-28 09:33:05
 '''
 
-from pydantic import BaseModel, Field
-from typing import List, Optional
 from datetime import datetime
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
 class UserStatus(str, Enum):
@@ -23,12 +23,12 @@ class AuthUser(BaseModel):
     user_id: str = Field(..., description="用户ID")
     username: str = Field(..., description="用户名 (格式: {业务名}_auth_user)")
     password_hash: str = Field(..., description="密码哈希")
-    permissions: List[str] = Field(default=[], description="权限列表")
+    permissions: list[str] = Field(default=[], description="权限列表")
     status: UserStatus = Field(default=UserStatus.ACTIVE, description="用户状态")
     created_at: datetime = Field(
         default_factory=datetime.utcnow, description="创建时间"
     )
-    last_login: Optional[datetime] = Field(None, description="最后登录时间")
+    last_login: datetime | None = Field(None, description="最后登录时间")
 
     class Config:
         collection_name = "auth_users"
@@ -56,7 +56,7 @@ class RegisterResponse(BaseModel):
     username: str = Field(..., description="用户名")
     password: str = Field(..., description="系统生成的密码（仅显示一次，请妥善保管）")
     created_at: datetime = Field(..., description="创建时间")
-    permissions: List[str] = Field(default=[], description="权限列表")
+    permissions: list[str] = Field(default=[], description="权限列表")
 
 
 class TokenResponse(BaseModel):
@@ -73,5 +73,5 @@ class TokenPayload(BaseModel):
 
     user_id: str
     username: str
-    permissions: List[str] = []
+    permissions: list[str] = []
     exp: int  # 过期时间戳

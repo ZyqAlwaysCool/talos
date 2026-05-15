@@ -48,7 +48,7 @@ class WorkflowTreeNodeInfo(BaseModel):
     started_at: str = Field("", description="开始时间（ISO8601）")
     ended_at: str = Field("", description="结束时间（ISO8601）")
     error_message: str = Field("", description="失败原因")
-    sub_nodes: list["WorkflowTreeNodeInfo"] = Field(
+    sub_nodes: list[WorkflowTreeNodeInfo] = Field(
         default_factory=list, description="子节点列表"
     )
 

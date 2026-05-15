@@ -1,3 +1,3 @@
-from .base import RequestTraceMiddleware, RequestLoggingMiddleware
+from .base import RequestLoggingMiddleware, RequestTraceMiddleware
 
 __all__ = ["RequestTraceMiddleware", "RequestLoggingMiddleware"]

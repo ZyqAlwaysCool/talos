@@ -9,13 +9,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from loguru import logger
-from pocketflow import AsyncNode
-
 from agents.infra.llm.thinking.runtime import (
     THINKING_TRACE_RUNTIME_SHARED_KEY,
     ThinkingTraceRuntime,
 )
+from loguru import logger
+from pocketflow import AsyncNode
 
 
 class TracedAsyncNode(AsyncNode):

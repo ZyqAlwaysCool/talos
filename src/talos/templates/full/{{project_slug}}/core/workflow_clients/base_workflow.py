@@ -6,11 +6,12 @@ LastEditors: zyq
 LastEditTime: 2026-02-28 09:39:07
 '''
 
-from typing import Dict, Any, Optional, Union
 from enum import Enum
-from pydantic import BaseModel, Field
+from typing import Any
+
 import httpx
 from loguru import logger
+from pydantic import BaseModel, Field
 
 from core.logging.sanitize import mask_sensitive_headers
 
@@ -36,11 +37,11 @@ class WorkflowStatus(str, Enum):
 class WorkflowResponse(BaseModel):
     status: WorkflowStatus = Field(default=WorkflowStatus.SUCCEED)
     message: str = Field(default="")
-    data: Union[str, Dict[str, Any], None] = Field(default="")
+    data: str | dict[str, Any] | None = Field(default="")
     conversation_id: str = Field(default="")
 
     @classmethod
-    def success(cls, data: Union[str, Dict[str, Any]], conv_id: str = ""):
+    def success(cls, data: str | dict[str, Any], conv_id: str = ""):
         return cls(data=data, conversation_id=conv_id)
 
     @classmethod
@@ -62,7 +63,7 @@ class BaseWorkflowClient:
         self.async_req_timeout = httpx.Timeout(2 * timeout, read=timeout)
 
     async def execute_workflow(
-        self, inputs: Dict[str, Any], trace_id: Optional[str] = None, **kwargs
+        self, inputs: dict[str, Any], trace_id: str | None = None, **kwargs
     ) -> WorkflowResponse:
         """执行工作流（异步）- 默认实现"""
         raise NotImplementedError("子类需要实现此方法")
@@ -91,8 +92,8 @@ class BaseWorkflowClient:
         self,
         url: str,
         method: str,
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
         json: Any = None,
         data: Any = None,
         files: Any = None,
@@ -122,10 +123,10 @@ class BaseWorkflowClient:
         self,
         url: str,
         method: str = "POST",
-        headers: Optional[Dict[str, str]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        files: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None,
+        headers: dict[str, str] | None = None,
+        data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         stream: bool = False,
         **client_kwargs: Any,
     ) -> httpx.Response:

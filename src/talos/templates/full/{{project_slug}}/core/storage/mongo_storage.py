@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 from bson import ObjectId
-from loguru import logger
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 
 

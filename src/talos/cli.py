@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import typer
 
-from talos.commands.new import new_command
 from talos.commands.create import create_app
+from talos.commands.new import new_command
 
 app = typer.Typer(
     name="talos",

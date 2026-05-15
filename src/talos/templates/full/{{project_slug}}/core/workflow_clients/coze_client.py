@@ -8,13 +8,12 @@ LastEditors: zyq
 LastEditTime: 2026-02-28 09:39:19
 '''
 
-import json
 import inspect
+import json
+from collections.abc import AsyncGenerator, Awaitable
 from functools import lru_cache
 from pathlib import Path
-
-from loguru import logger
-from typing import Optional, Dict, Any, AsyncGenerator, List, Tuple, Awaitable, cast
+from typing import Any, cast
 
 from cozepy import (
     COZE_CN_BASE_URL,
@@ -25,14 +24,16 @@ from cozepy import (
     ChatEventType,
     ChatStatus,
     Coze,
-    JWTOAuthApp,
     JWTAuth,
+    JWTOAuthApp,
     Message,
     MessageObjectString,
     MessageRole,
     MessageType,
     TokenAuth,
 )
+from loguru import logger
+
 from .base_workflow import BaseWorkflowClient, WorkflowResponse
 
 _IMAGE_FILE_SUFFIXES = {
@@ -49,7 +50,7 @@ _MIN_OAUTH_TOKEN_TTL = 60
 _MAX_OAUTH_TOKEN_TTL = 24 * 60 * 60
 
 
-def _normalize_token_ttl(token_ttl: Optional[int]) -> int:
+def _normalize_token_ttl(token_ttl: int | None) -> int:
     """确保TTL处于coze平台要求范围"""
     ttl = token_ttl if isinstance(token_ttl, int) else _DEFAULT_OAUTH_TOKEN_TTL
     if ttl < _MIN_OAUTH_TOKEN_TTL:
@@ -65,7 +66,7 @@ def _get_oauth_auth(
     pub_key: str,
     pri_key: str,
     ttl: int,
-) -> Tuple[JWTAuth, AsyncJWTAuth]:
+) -> tuple[JWTAuth, AsyncJWTAuth]:
     """缓存oauth_app, 避免频繁重新创建并触发token刷新"""
     oauth_app = JWTOAuthApp(
         client_id=client_id,
@@ -93,9 +94,9 @@ class CozeClient(BaseWorkflowClient):
     def __init__(
         self,
         access_api_key: str,
-        bot_id: Optional[str] = None,
-        workflow_name: Optional[str] = None,
-        user_id: Optional[str] = None,
+        bot_id: str | None = None,
+        workflow_name: str | None = None,
+        user_id: str | None = None,
     ):
         """主要的构造函数：通过API Key初始化client"""
         self.coze_client = Coze(
@@ -123,7 +124,7 @@ class CozeClient(BaseWorkflowClient):
         pri_key: str,
         workflow_name: str,
         user_id: str,
-        token_ttl: Optional[int] = None,
+        token_ttl: int | None = None,
     ):
         """通过oauth信息初始化client"""
         ttl = _normalize_token_ttl(token_ttl)
@@ -183,7 +184,7 @@ class CozeClient(BaseWorkflowClient):
         return str(content)
 
     @staticmethod
-    def _build_sse_chunk(payload: Dict[str, Any]) -> str:
+    def _build_sse_chunk(payload: dict[str, Any]) -> str:
         """格式化SSE数据块"""
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
@@ -191,8 +192,8 @@ class CozeClient(BaseWorkflowClient):
         self,
         query: str,
         bot_id: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        files: Optional[List[Dict[str, Any]]] = None,
+        inputs: dict[str, Any] | None = None,
+        files: list[dict[str, Any]] | None = None,
     ) -> AsyncGenerator[str, None]:
         """
         ref: https://www.coze.cn/open/docs/developer_guides/chat_v3#38cb7046
@@ -287,8 +288,8 @@ class CozeClient(BaseWorkflowClient):
     async def workflow_stream(
         self,
         workflow_id: str,
-        bot_id: Optional[str] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        bot_id: str | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         """Coze workflow stream_run"""
         stream = self.async_coze_client.workflows.runs.stream(
@@ -329,8 +330,8 @@ class CozeClient(BaseWorkflowClient):
     def workflow_block(
         self,
         workflow_id: str,
-        bot_id: Optional[str] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        bot_id: str | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> CozeResponse:
         """Coze workflow create (non-stream)"""
         try:
@@ -351,8 +352,8 @@ class CozeClient(BaseWorkflowClient):
         self,
         query: str,
         bot_id: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        files: Optional[List[Dict[str, Any]]] = None,
+        inputs: dict[str, Any] | None = None,
+        files: list[dict[str, Any]] | None = None,
     ) -> CozeResponse:
         """
         ref: https://github.com/coze-dev/coze-py/blob/main/examples/chat_no_stream.py
@@ -463,8 +464,8 @@ class CozeClient(BaseWorkflowClient):
         )
 
     def _build_additional_messages(
-        self, query: str, files: Optional[List[Dict[str, Any]]]
-    ) -> List[Message]:
+        self, query: str, files: list[dict[str, Any]] | None
+    ) -> list[Message]:
         """根据query与文件信息构造additional_messages"""
         if not files:
             return [Message.build_user_question_text(query)]

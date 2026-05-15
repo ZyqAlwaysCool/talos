@@ -6,11 +6,11 @@ from typing import Any
 
 from loguru import logger
 
-from core.task.backends.redis_backend import RedisTaskBackend
+from core.config.config_center import get_app_config, get_worker_config
 from core.task.backends.mongo_task_storage import MongoTaskStorage
+from core.task.backends.redis_backend import RedisTaskBackend
 from core.task.base.queue_backend import QueueBackend
 from core.task.base.storage_backend import StorageBackend
-from core.config.config_center import get_app_config, get_worker_config
 
 
 class TaskManagerFactory:
