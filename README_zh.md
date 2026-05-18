@@ -52,12 +52,12 @@ uv sync
 # 5. 启动服务
 bash scripts/start.sh all
 
-# 6. 测试
-curl -X POST http://127.0.0.1:19999/text_processor/create \
+# 6. 测试（统一 API）
+curl -X POST http://127.0.0.1:19999/agents/task/create \
   -H "Content-Type: application/json" \
-  -d '{"text": "人工智能正在改变我们的生活方式..."}'
+  -d '{"task_type": "text_processor", "metadata": {"text": "人工智能正在改变我们的生活方式..."}}'
 
-curl "http://127.0.0.1:19999/text_processor/query?task_id=<返回的 task_id>"
+curl "http://127.0.0.1:19999/agents/task/query?task_id=<返回的 task_id>"
 
 # 7. 停止
 bash scripts/stop.sh
@@ -90,8 +90,8 @@ $ talos new my-agent
 
 | 模板 | 包含内容 | 适用 |
 |------|---------|------|
-| **Minimal** | `core/`（任务队列、MongoDB、Redis）+ 示例 Agent | 快速原型、学习 |
-| **Standard** | Minimal + LLM 执行器 + Thinking Stream + 工作流归档 | 标准 AI Agent 服务 |
+| **Minimal** | core + 统一路由(create/query) + 注册表 + 编排层 + handler 三件套 + 自动发现 | 快速原型、学习 |
+| **Standard** | Minimal + LLM 执行器 + Thinking Stream + 工作流归档 + 查询工厂函数 | 标准 AI Agent 服务 |
 | **Full** | Standard + SSE 推送 + 认证 + Coze/Dify 客户端 | 生产级服务 |
 
 ## 项目结构
@@ -105,19 +105,35 @@ my-agent/
 │   └── stop.sh              # 停止脚本
 ├── core/                    # 基础设施
 │   ├── config/              # 配置中心
-│   ├── task/                # 异步任务队列（Redis 后端 + MongoDB 存储）
+│   ├── task/                # 异步任务队列（Redis + MongoDB）+ 自动发现
 │   ├── storage/             # MongoDB 抽象层
 │   ├── logging/             # 日志系统
 │   ├── middleware/           # HTTP 中间件
+│   ├── auth/                # 认证依赖
 │   ├── exceptions/          # 异常体系
 │   └── schemas/             # 统一响应模型
+├── app/
+│   ├── api.py               # 路由聚合
+│   └── register_handlers.py # 业务域 handler 注册
 ├── agents/
-│   └── text_processor/      # 示例 Agent
-│       ├── router.py        # FastAPI 路由
-│       ├── service.py       # 业务编排
-│       ├── schemas.py       # 数据模型
-│       ├── repository/      # 持久化
-│       └── workflow/        # DAG 工作流
+│   ├── router/              # 统一 HTTP 路由（薄层）
+│   │   ├── task_create.py   # POST /agents/task/create
+│   │   └── task_query.py    # GET  /agents/task/query
+│   ├── infra/               # Agent 基础设施
+│   │   ├── registry/        # 三注册表（create/query/thinking）+ AppRegistries
+│   │   ├── orchestrator/    # 任务编排（分发到 handler）
+│   │   ├── query/           # 查询结果工厂（task_query_ok/err）
+│   │   └── schemas/         # 统一请求/响应 schema
+│   └── biz/                 # 业务域
+│       └── text_processor/  # 示例 Agent 域
+│           ├── __init__.py           # register(registries) 自注册
+│           ├── handlers/             # 实现 infra 协议的三个 handler
+│           │   ├── create.py         # TaskCreateHandler
+│           │   ├── query.py          # TaskQueryHandler
+│           │   └── thinking.py       # TaskThinkingResolver
+│           ├── repository/           # 持久化
+│           ├── workflow/             # DAG 工作流 + task_entry
+│           └── schemas.py            # 业务专属数据模型
 ├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
@@ -126,17 +142,17 @@ my-agent/
 
 ## 添加新 Agent
 
-在已有项目中快速生成 Agent 骨架：
+在已有项目中快速生成 Agent 域骨架（handler 三件套 + repository + workflow）：
 
 ```bash
 talos create agent invoice-review
 
 # 选择:
-#   Simple   — router + service + 单 LLM 调用
-#   Workflow — router + service + DAG 工作流 + 多节点
+#   Simple   — handlers/ 三件套（create + query + thinking）+ 单 LLM 调用
+#   Workflow — handlers/ 三件套 + DAG 工作流 + 多节点 + task_entry
 ```
 
-`main.py` 会自动发现 `agents/*/router.py`，无需手动注册路由。
+然后在 `app/register_handlers.py` 追加一行注册即可接入统一路由体系。任务模块由 Worker 自动发现（`agents/biz/*/workflow/task_entry`），无需手动配置 `TASK_MODULES`。
 
 ## Docker 部署
 

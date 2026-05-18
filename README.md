@@ -53,12 +53,12 @@ uv sync
 # 5. Start services
 bash scripts/start.sh all
 
-# 6. Test
-curl -X POST http://127.0.0.1:19999/text_processor/create \
+# 6. Test (unified API)
+curl -X POST http://127.0.0.1:19999/agents/task/create \
   -H "Content-Type: application/json" \
-  -d '{"text": "Artificial intelligence is transforming how we live..."}'
+  -d '{"task_type": "text_processor", "metadata": {"text": "Artificial intelligence is transforming how we live..."}}'
 
-curl "http://127.0.0.1:19999/text_processor/query?task_id=<returned task_id>"
+curl "http://127.0.0.1:19999/agents/task/query?task_id=<returned task_id>"
 
 # 7. Stop
 bash scripts/stop.sh
@@ -91,8 +91,8 @@ If you select an LLM Provider and enter the API Key, `.env.local` is auto-genera
 
 | Template | Includes | Best for |
 |------|---------|------|
-| **Minimal** | `core/` (task queue, MongoDB, Redis) + example Agent | Prototyping & learning |
-| **Standard** | Minimal + LLM executor + Thinking Stream + workflow archiving | Standard AI Agent services |
+| **Minimal** | core + unified routing (create/query) + registry + orchestrator + handler pattern + auto-discovery | Prototyping & learning |
+| **Standard** | Minimal + LLM executor + Thinking Stream + workflow archiving + query factories | Standard AI Agent services |
 | **Full** | Standard + SSE push + auth + Coze/Dify clients | Production |
 
 ## Project Structure
@@ -106,19 +106,35 @@ my-agent/
 │   └── stop.sh              # Stop script
 ├── core/                    # Infrastructure
 │   ├── config/              # Configuration center
-│   ├── task/                # Async task queue (Redis backend + MongoDB storage)
+│   ├── task/                # Async task queue (Redis + MongoDB) + auto-discovery
 │   ├── storage/             # MongoDB abstraction layer
 │   ├── logging/             # Logging system
 │   ├── middleware/           # HTTP middleware
+│   ├── auth/                # Auth dependencies
 │   ├── exceptions/          # Exception hierarchy
 │   └── schemas/             # Unified response schemas
+├── app/
+│   ├── api.py               # Route aggregation
+│   └── register_handlers.py # Domain handler registration
 ├── agents/
-│   └── text_processor/      # Example Agent
-│       ├── router.py        # FastAPI router
-│       ├── service.py       # Business orchestration
-│       ├── schemas.py       # Data models
-│       ├── repository/      # Persistence
-│       └── workflow/        # DAG workflow
+│   ├── router/              # Unified HTTP routes (thin layer)
+│   │   ├── task_create.py   # POST /agents/task/create
+│   │   └── task_query.py    # GET  /agents/task/query
+│   ├── infra/               # Agent infrastructure
+│   │   ├── registry/        # 3 registries (create/query/thinking) + AppRegistries
+│   │   ├── orchestrator/    # Task orchestration (dispatch to handlers)
+│   │   ├── query/           # Query result factories (task_query_ok/err)
+│   │   └── schemas/         # Unified request/response schemas
+│   └── biz/                 # Business domains
+│       └── text_processor/  # Example agent domain
+│           ├── __init__.py           # register(registries) for self-registration
+│           ├── handlers/             # 3 handlers implementing infra protocols
+│           │   ├── create.py         # TaskCreateHandler
+│           │   ├── query.py          # TaskQueryHandler
+│           │   └── thinking.py       # TaskThinkingResolver
+│           ├── repository/           # Persistence
+│           ├── workflow/             # DAG workflow + task_entry
+│           └── schemas.py            # Domain-specific data models
 ├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
@@ -127,17 +143,17 @@ my-agent/
 
 ## Add a New Agent
 
-Quickly generate an Agent scaffold within an existing project:
+Generate an Agent domain scaffold (handler trio + repository + workflow):
 
 ```bash
 talos create agent invoice-review
 
 # Options:
-#   Simple   — router + service + single LLM call
-#   Workflow — router + service + DAG workflow + multi-node
+#   Simple   — handlers/ trio (create + query + thinking) + single LLM call
+#   Workflow — handlers/ trio + DAG workflow + multi-node + task_entry
 ```
 
-`main.py` auto-discovers `agents/*/router.py` — no manual route registration needed.
+Then add one line to `app/register_handlers.py` to register the new domain with the unified routing system. Task modules are auto-discovered from `agents/biz/*/workflow/task_entry` — no manual `TASK_MODULES` configuration needed.
 
 ## Docker Deployment
 
